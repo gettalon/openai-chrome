@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "openai-chrome",
+  "version": "0.1.0",
+  "description": "Unofficial bridge exposing an already-installed OpenAI Chrome CUA runtime to Claude Code through a local MCP server.",
+  "author": {
+    "name": "Ted Wei",
+    "url": "https://github.com/TedWei"
+  },
+  "homepage": "https://github.com/TedWei/openai-chrome",
+  "repository": "https://github.com/TedWei/openai-chrome",
+  "license": "MIT",
+  "keywords": ["openai", "chrome", "mcp", "claude-code", "browser-automation"],
+  "skills": ["./"]
+}

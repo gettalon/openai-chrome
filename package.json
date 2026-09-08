@@ -1,0 +1,19 @@
+{
+  "name": "openai-chrome",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Unofficial Claude Code bridge for an existing OpenAI Chrome CUA runtime",
+  "license": "MIT",
+  "repository": "github:TedWei/openai-chrome",
+  "engines": {
+    "node": ">=22.20.0"
+  },
+  "scripts": {
+    "test": "node --test tests/repository.test.mjs",
+    "validate:plugin": "claude plugin validate ./skills/openai-chrome --strict",
+    "list:skills": "skills add . --list",
+    "probe": "node skills/openai-chrome/scripts/probe.mjs",
+    "test:live": "python3 tests/proxy-live.py"
+  }
+}

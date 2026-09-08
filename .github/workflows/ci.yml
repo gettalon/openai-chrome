@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.20.0'
+      - run: npm test
+      - run: node --check skills/openai-chrome/scripts/runtime-resolver.mjs
+      - run: node --check skills/openai-chrome/scripts/child-mcp.mjs
+      - run: node --check skills/openai-chrome/scripts/proxy-server.mjs
+      - run: node --check skills/openai-chrome/scripts/probe.mjs
