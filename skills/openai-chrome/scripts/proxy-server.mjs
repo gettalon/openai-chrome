@@ -110,21 +110,27 @@ async function ensureChild() {
 }
 
 async function persistScreenshot(code, output) {
-  const path = extractScreenshotPath(code);
-  if (!path) return null;
   const blocks = output?.content ?? [];
+  const requested = extractScreenshotPath(code);
+  const saved = [];
   for (const block of blocks) {
     if (block?.type !== 'text' || typeof block.text !== 'string') continue;
     const image = extractImageBytes(block.text);
     if (!image) continue;
+    const path = requested ?? defaultArtifactPath(image.ext);
     await saveScreenshot(path, image.bytes);
-    return { path, bytes: image.bytes.length };
+    block.text = block.text.replace(BLOB_REDACT, `[binary image ${image.bytes.length} bytes saved to ${path}]`);
+    saved.push({ path, bytes: image.bytes.length });
   }
-  return null;
+  return saved;
 }
 
+const BLOB_REDACT = /\{"0":\d{1,3}(?:,"\d+":\d{1,3}){1023,}\}/g;
+
 function appendSavedNotice(output, saved) {
-  const notice = { type: 'text', text: `Screenshot saved to ${saved.path} (${saved.bytes} bytes).` };
+  if (!saved.length) return output;
+  const lines = saved.map(s => `Screenshot saved to ${s.path} (${s.bytes} bytes).`);
+  const notice = { type: 'text', text: lines.join('\n') };
   if (Array.isArray(output?.content)) return { ...output, content: [...output.content, notice] };
   return output;
 }
