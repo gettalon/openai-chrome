@@ -53,6 +53,16 @@ Do not combine the first bootstrap/selection call with other actions. Keep retur
 - Do not change socket permissions, patch the native-host manifest/extension, or connect directly to `/tmp/codex-browser-use`.
 - After every mutation, fetch fresh accessibility state before deciding the next action. Stop once the requested result is visibly verified.
 
+## Screenshots
+
+The original CUA screenshot APIs (`tab.screenshot()`, `elementScreenshot()`, `getScreenshot()`, `getAXStateAndScreenshot()`) return raw image bytes and accept no file path. This bridge adds a `{ path }` convention: pass it and the proxy saves the image there; omit it and the image lands in a timestamped tmp file. Either way the tool result confirms the saved path — always verify the file exists on disk before treating a capture as evidence.
+
+```js
+await tab.screenshot({ path: "/tmp/qa/desktop-header.png" });
+```
+
+Note the AX tree and screenshots can disagree: the tree reflects the live DOM (hidden and off-viewport nodes included) while a screenshot shows only rendered pixels. Trust pixels for "is it visible", the tree for "does it exist".
+
 ## Confirmation boundaries
 
 The OpenAI runtime enforces origin and transfer checks. Never circumvent a rejection through another browser or lower-level API.
