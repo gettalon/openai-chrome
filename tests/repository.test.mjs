@@ -34,3 +34,22 @@ test('evals and scripts contain no local-only paths', async () => {
     assert.doesNotMatch(text, /\/Users\/hunter|iclass\.one/);
   }
 });
+
+test('screenshot helper recovers image bytes and requested path', async () => {
+  const { extractImageBytes, extractScreenshotPath } = await import(
+    '../skills/openai-chrome/scripts/screenshot-artifacts.mjs'
+  );
+  const blob = {};
+  for (let i = 0; i < 1500; i += 1) blob[String(i)] = i % 256;
+  blob['0'] = 0xff;
+  blob['1'] = 0xd8;
+  blob['2'] = 0xff;
+  assert.equal(
+    extractScreenshotPath('await tab.screenshot({ path: "/tmp/shot.png" })'),
+    '/tmp/shot.png',
+  );
+  assert.equal(extractScreenshotPath('await tab.getAXState()'), null);
+  assert.equal(extractImageBytes(`ok ${JSON.stringify(blob)} done`).bytes.length, 1500);
+  assert.equal(extractImageBytes('no image payload here'), null);
+  assert.equal(extractImageBytes(JSON.stringify({ 0: 1, 1: 2 })), null, 'too-small blobs are rejected');
+});

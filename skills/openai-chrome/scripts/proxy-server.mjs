@@ -8,6 +8,7 @@ import os from 'node:os';
 import process from 'node:process';
 import { ChildMcp } from './child-mcp.mjs';
 import { resolveOpenAiRuntime } from './runtime-resolver.mjs';
+import { extractImageBytes, extractScreenshotPath, saveScreenshot } from './screenshot-artifacts.mjs';
 
 const pluginRoot = dirname(dirname(fileURLToPath(import.meta.url)));
 const runtimeRoot = process.env.CLAUDE_PLUGIN_DATA
@@ -108,6 +109,26 @@ async function ensureChild() {
   }
 }
 
+async function persistScreenshot(code, output) {
+  const path = extractScreenshotPath(code);
+  if (!path) return null;
+  const blocks = output?.content ?? [];
+  for (const block of blocks) {
+    if (block?.type !== 'text' || typeof block.text !== 'string') continue;
+    const image = extractImageBytes(block.text);
+    if (!image) continue;
+    await saveScreenshot(path, image.bytes);
+    return { path, bytes: image.bytes.length };
+  }
+  return null;
+}
+
+function appendSavedNotice(output, saved) {
+  const notice = { type: 'text', text: `Screenshot saved to ${saved.path} (${saved.bytes} bytes).` };
+  if (Array.isArray(output?.content)) return { ...output, content: [...output.content, notice] };
+  return output;
+}
+
 async function handleRequest(message) {
   const { id, method, params = {} } = message;
   try {
@@ -149,7 +170,9 @@ async function handleRequest(message) {
         result(id, output);
         return;
       }
-      result(id, await active.tool(params.name, params.arguments ?? {}, metadata()));
+      const output = await active.tool(params.name, params.arguments ?? {}, metadata());
+      const saved = await persistScreenshot(params.arguments?.code, output);
+      result(id, saved ? appendSavedNotice(output, saved) : output);
       return;
     }
 
